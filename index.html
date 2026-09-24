@@ -49,6 +49,18 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
 #counts{font-size:13px;margin-top:8px}
 #counts b{color:#C0392B}
 .tabs button{border-radius:8px 8px 0 0}
+
+.gal .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.gal h3{font-size:15px;margin:18px 0 8px}
+.gc{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.gc.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.gc svg{width:112px;height:112px;display:block;margin:0 auto 8px}
+.gc .nm{font-weight:700;font-size:16px}
+.gc .sm{font-size:12px;color:var(--mute)}
+.gc .al{font:700 14px/1.55 ui-monospace,Menlo,Consolas,monospace;margin-top:6px;word-break:break-word}
+.gc .nt{font-size:12px;color:var(--accent);margin-top:4px}
+.chips a{font-size:13px;color:var(--ink);text-decoration:none;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.chips a:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -65,18 +77,9 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
    <button id="solved">Solved cube</button>
    <button id="face">Reset facing</button>
   </div>
-  <div id="algbox" style="margin-top:8px"><div id="alg" aria-live="polite">Choose a pattern on the right.</div><div id="meta" class="note"></div></div>
+  <div id="algbox" style="margin-top:8px"><div id="alg" aria-live="polite">Tap a pattern below to see it here.</div><div id="meta" class="note"></div></div>
  </div>
  <div>
-  <div class="card sec">
-   <h2>Patterns</h2>
-   <div class="row tabs" role="tablist" style="margin-bottom:8px">
-    <button id="tPLL" aria-pressed="true">PLL (last step)</button>
-    <button id="tOLL" aria-pressed="false">OLL 1 to 57</button>
-   </div>
-   <div id="cases" class="row cases"></div>
-   <p class="note">The cube is shown as if the first two layers are solved. Play the moves, or step through them one at a time.</p>
-  </div>
   <div class="card sec">
    <h2>Turn the cube yourself</h2>
    <div class="pad" id="pad"></div>
@@ -90,14 +93,29 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
   </div>
  </div>
 </div>
+<section class="card gal" id="gallery" style="margin-top:14px">
+ <h2>Find your pattern</h2>
+ <div class="row tabs" role="tablist" style="margin-bottom:8px">
+  <button id="tTWO" aria-pressed="true">2-look OLL (shortcut)</button>
+  <button id="tOLL" aria-pressed="false">All 57 OLL</button>
+  <button id="tPLL" aria-pressed="false">PLL (last step)</button>
+ </div>
+ <p class="note" id="galnote"></p>
+ <div id="shapeNav" class="row chips" style="margin:8px 0"></div>
+ <div id="cases"></div>
+</section>
 </main>
 <script src="three.min.js"></script>
 <script>
 (function(){
 var COLORS={Y:0xFFD500,W:0xF2F2F2,G:0x2EA84F,B:0x2C6FD1,R:0xD93A3A,O:0xF28C28};
 var NAMES={Y:"Yellow",W:"White",G:"Green",B:"Blue",R:"Red",O:"Orange"};
-var PLL=[["Ua","R U' R U R U R U' R' U' R2"],["Ub","R2 U R U R' U' R' U' R' U R'"],["H","M2 U M2 U2 M2 U M2"],["Z","M' U M2' U M2' U M' U2 M2' U'"],["Aa","x R' U R' D2 R U' R' D2 R2 x'"],["Ab","x R2 D2 R U R' D2 R U' R x'"],["E","x' R U' R' D R U R' D' R U R' D R U' R' D' x"],["T","R U R' U' R' F R2 U' R' U' R U R' F'"],["Y","F R U' R' U' R U R' F' R U R' U' R' F R F'"],["F","R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R"],["Ja","L' U' L F L' U' L U L F' L2 U L U"],["Jb","R U R' F' R U R' U' R' F R2 U' R' U'"],["Ra","R U' R' U' R U R D R' U' R D' R' U2 R' U'"],["Rb","R2 F R U R U' R' F' R U2 R' U2 R U"],["V","R' U R' U' y R' F' R2 U' R' U R' F R F"],["Na","R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'"],["Nb","R' U R U' R' F' U' F R U R' F R' F' R U' R"],["Ga","R2 U R' U R' U' R U' R2 D U' R' U R D' U"],["Gb","R' U' R U D' R2 U R' U R U' R U' R2 D U'"],["Gc","R2 U' R U' R U R' U R2 D' U R U' R' D U'"],["Gd","R U R' U' D R2 U' R U' R' U R' U R2 D' U"]];
-var OLL=[["1", "R U2 R2 F R F' U2 R' F R F'"], ["2", "F R U R' U' F' f R U R' U' f'"], ["3", "f R U R' U' f' U' F R U R' U' F'"], ["4", "f R U R' U' f' U F R U R' U' F'"], ["5", "r' U2 R U R' U r"], ["6", "r U2 R' U' R U' r'"], ["7", "r U R' U R U2 r'"], ["8", "r' U' R U' R' U2 r"], ["9", "R U R' U' R' F R2 U R' U' F'"], ["10", "R U R' U R' F R F' R U2 R'"], ["11", "r U R' U R' F R F' R U2 r'"], ["12", "F R U R' U' F' U F R U R' U' F'"], ["13", "F U R U2 R' U' R U R' F'"], ["14", "R' F R U R' F' R F U' F'"], ["15", "r' U' r R' U' R U r' U r"], ["16", "r U r' R U R' U' r U' r'"], ["17", "R U R' U R' F R F' U2 R' F R F'"], ["18", "r U R' U R U2 r2 U' R U' R' U2 r"], ["19", "r' R U R U R' U' M' R' F R F'"], ["20", "r U R' U' M2 U R U' R' U' M'"], ["21", "R U2 R' U' R U R' U' R U' R'"], ["22", "R U2 R2 U' R2 U' R2 U2 R"], ["23", "R2 D R' U2 R D' R' U2 R'"], ["24", "r U R' U' r' F R F'"], ["25", "F' r U R' U' r' F R"], ["26", "R U2 R' U' R U' R'"], ["27", "R U R' U R U2 R'"], ["28", "r U R' U' r' R U R U' R'"], ["29", "R U R' U' R U' R' F' U' F R U R'"], ["30", "F R' F R2 U' R' U' R U R' F2"], ["31", "R' U' F U R U' R' F' R"], ["32", "R U B' U' R' U R B R'"], ["33", "R U R' U' R' F R F'"], ["34", "R U R2 U' R' F R U R U' F'"], ["35", "R U2 R2 F R F' R U2 R'"], ["36", "R' U' R U' R' U R U R B' R' B"], ["37", "F R' F' R U R U' R'"], ["38", "R U R' U R U' R' U' R' F R F'"], ["39", "R U R' F' U' F U R U2 R'"], ["40", "R' F R U R' U' F' U R"], ["41", "R U R' U R U2 R' F R U R' U' F'"], ["42", "R' U' R U' R' U2 R F R U R' U' F'"], ["43", "R' U' F' U F R"], ["44", "F U R U' R' F'"], ["45", "F R U R' U' F'"], ["46", "R' U' R' F R F' U R"], ["47", "R' U' R' F R F' R' F R F' U R"], ["48", "F R U R' U' R U R' U' F'"], ["49", "R B' R2 F R2 B R2 F' R"], ["50", "R' F R2 B' R2 F' R2 B R'"], ["51", "f R U R' U' R U R' U' f'"], ["52", "R U R' U R d' R U' R' F'"], ["53", "r' U' R U' R' U R U' R' U2 r"], ["54", "r U R' U R U' R' U R U2 r'"], ["55", "R U2 R2 U' R U' R' U2 F R F'"], ["56", "r U r' U R U' R' U R U' R' r U' r'"], ["57", "R U R' U' M' U R U' r'"]];
+var OLL=[{"n":1,"sh":"Dot (no edges oriented)","e":0,"c":0,"alg":"R U2 R2 F R F' U2 R' F R F'","note":"","b":"000010000010010111111"},{"n":2,"sh":"Dot (no edges oriented)","e":0,"c":0,"alg":"F R U R' U' F' f R U R' U' f'","note":"","b":"000010000011011111010"},{"n":3,"sh":"Dot (no edges oriented)","e":0,"c":1,"alg":"f R U R' U' f' U' F R U R' U' F'","note":"","b":"000010001110010011110"},{"n":4,"sh":"Dot (no edges oriented)","e":0,"c":1,"alg":"f R U R' U' f' U F R U R' U' F'","note":"","b":"001010000010110110011"},{"n":5,"sh":"Square shape","e":2,"c":1,"alg":"r' U2 R U R' U r","note":"","b":"000011011110000011100"},{"n":6,"sh":"Square shape","e":2,"c":1,"alg":"r U2 R' U' R U' r'","note":"","b":"011011000000110110001"},{"n":7,"sh":"Small lightning bolt","e":2,"c":1,"alg":"r U R' U R U2 r'","note":"","b":"010110100100011000110"},{"n":8,"sh":"Small lightning bolt","e":2,"c":1,"alg":"r' U' R U' R' U2 r","note":"","b":"100110010011100000011"},{"n":9,"sh":"Fish shape","e":2,"c":1,"alg":"R U R' U' R' F R2 U R' U' F'","note":"","b":"010110001001110100010"},{"n":10,"sh":"Fish shape","e":2,"c":1,"alg":"R U R' U R' F R F' R U2 R'","note":"","b":"001110010110001001010"},{"n":11,"sh":"Small lightning bolt","e":2,"c":1,"alg":"r U R' U R' F R F' R U2 r'","note":"","b":"011110000100011001010"},{"n":12,"sh":"Small lightning bolt","e":2,"c":1,"alg":"F R U R' U' F' U F R U R' U' F'","note":"","b":"001011010010100110001"},{"n":13,"sh":"Knight move","e":2,"c":1,"alg":"F U R U2 R' U' R U R' F'","note":"","b":"000111100110011000100"},{"n":14,"sh":"Knight move","e":2,"c":1,"alg":"R' F R U R' F' R F U' F'","note":"","b":"000111001011110100000"},{"n":15,"sh":"Knight move","e":2,"c":1,"alg":"r' U' r R' U' R U r' U r","note":"","b":"000111001110010001100"},{"n":16,"sh":"Knight move","e":2,"c":1,"alg":"r U r' R U R' U' r U' r'","note":"","b":"001111000010110100001"},{"n":17,"sh":"Dot (no edges oriented)","e":0,"c":2,"alg":"R U R' U R' F R F' U2 R' F R F'","note":"","b":"100010001011010011010"},{"n":18,"sh":"Dot (no edges oriented)","e":0,"c":2,"alg":"r U R' U R U2 r2 U' R U' R' U2 r","note":"","b":"101010000010111010010"},{"n":19,"sh":"Dot (no edges oriented)","e":0,"c":2,"alg":"r' R U R U R' U' M' R' F R F'","note":"","b":"101010000010010011011"},{"n":20,"sh":"Dot (no edges oriented)","e":0,"c":4,"alg":"r U R' U' M2 U R U' R' U' M'","note":"","b":"101010101010010010010"},{"n":21,"sh":"Cross (all edges oriented)","e":4,"c":0,"alg":"R U2 R' U' R U R' U' R U' R'","note":"","b":"010111010101101000000"},{"n":22,"sh":"Cross (all edges oriented)","e":4,"c":0,"alg":"R U2 R2 U' R2 U' R2 U2 R","note":"","b":"010111010001001101000"},{"n":23,"sh":"Cross (all edges oriented)","e":4,"c":2,"alg":"R2 D R' U2 R D' R' U2 R'","note":"","b":"111111010000101000000"},{"n":24,"sh":"Cross (all edges oriented)","e":4,"c":2,"alg":"r U R' U' r' F R F'","note":"","b":"011111011100100000000"},{"n":25,"sh":"Cross (all edges oriented)","e":4,"c":2,"alg":"F' r U R' U' r' F R","note":"","b":"011111110000001100000"},{"n":26,"sh":"Cross (all edges oriented)","e":4,"c":1,"alg":"R U2 R' U' R U' R'","note":"","b":"011111010000100100001"},{"n":27,"sh":"Cross (all edges oriented)","e":4,"c":1,"alg":"R U R' U R U2 R'","note":"","b":"010111110100001000100"},{"n":28,"sh":"Corners oriented","e":2,"c":4,"alg":"r U R' U' r' R U R U' R'","note":"","b":"111110101000010000010"},{"n":29,"sh":"Awkward shape","e":2,"c":2,"alg":"R U R' U' R U' R' F' U' F R U R'","note":"","b":"011110001100110000010"},{"n":30,"sh":"Awkward shape","e":2,"c":2,"alg":"F R' F R2 U' R' U' R U R' F2","note":"","b":"010110101000010100110"},{"n":31,"sh":"P shape","e":2,"c":2,"alg":"R' U' F U R U' R' F' R","note":"","b":"011011001100110010000"},{"n":32,"sh":"P shape","e":2,"c":2,"alg":"R U B' U' R' U R B R'","note":"","b":"001011011110100010000"},{"n":33,"sh":"T shape","e":2,"c":2,"alg":"R U R' U' R' F R F'","note":"","b":"001111001110110000000"},{"n":34,"sh":"C shape","e":2,"c":2,"alg":"R U R2 U' R' F R U R U' F'","note":"","b":"000111101010010100100"},{"n":35,"sh":"Fish shape","e":2,"c":2,"alg":"R U2 R2 F R F' R U2 R'","note":"","b":"100011011010100010100"},{"n":36,"sh":"W shape","e":2,"c":2,"alg":"R' U' R U' R' U R U R B' R' B","note":"","b":"100110011010100000110"},{"n":37,"sh":"Fish shape","e":2,"c":2,"alg":"F R' F' R U R U' R'","note":"","b":"110110001000110000110"},{"n":38,"sh":"W shape","e":2,"c":2,"alg":"R U R' U R U' R' U' R' F R F'","note":"","b":"011110100100010000011"},{"n":39,"sh":"Big lightning bolt","e":2,"c":2,"alg":"R U R' F' U' F U R U2 R'","note":"","b":"001111100010011100000"},{"n":40,"sh":"Big lightning bolt","e":2,"c":2,"alg":"R' F R U R' U' F' U R","note":"","b":"100111001011010001000"},{"n":41,"sh":"Awkward shape","e":2,"c":2,"alg":"R U R' U R U2 R' F R U R' U' F'","note":"","b":"010110101101010000010"},{"n":42,"sh":"Awkward shape","e":2,"c":2,"alg":"R' U' R U' R' U2 R F R U R' U' F'","note":"","b":"101110010010101000010"},{"n":43,"sh":"P shape","e":2,"c":2,"alg":"R' U' F' U F R","note":"","b":"111110000000111000010"},{"n":44,"sh":"P shape","e":2,"c":2,"alg":"F U R U' R' F'","note":"","b":"110110100000010000111"},{"n":45,"sh":"T shape","e":2,"c":2,"alg":"F R U R' U' F'","note":"","b":"001111001010010101000"},{"n":46,"sh":"C shape","e":2,"c":2,"alg":"R' U' R' F R F' U R","note":"","b":"110010110000000010111"},{"n":47,"sh":"L shape","e":2,"c":0,"alg":"R' U' R' F R F' R' F R F' U R","note":"","b":"010011000100110010101"},{"n":48,"sh":"L shape","e":2,"c":0,"alg":"F R U R' U' R U R' U' F'","note":"","b":"010110000001011101010"},{"n":49,"sh":"L shape","e":2,"c":0,"alg":"R B' R2 F R2 B R2 F' R","note":"","b":"000110010110100000111"},{"n":50,"sh":"L shape","e":2,"c":0,"alg":"R' F R2 B' R2 F' R2 B R'","note":"","b":"010110000100110000111"},{"n":51,"sh":"I shape","e":2,"c":0,"alg":"f R U R' U' R U R' U' f'","note":"","b":"000111000011011101000"},{"n":52,"sh":"I shape","e":2,"c":0,"alg":"U R U R' U R d' R U' R' F'","note":"Start with the U turn. It lines this picture up with the algorithm.","b":"010010010100100010111"},{"n":53,"sh":"L shape","e":2,"c":0,"alg":"r' U' R U' R' U R U' R' U2 r","note":"","b":"000011010010000111101"},{"n":54,"sh":"L shape","e":2,"c":0,"alg":"r U R' U R U' R' U R U2 r'","note":"","b":"010011000000010111101"},{"n":55,"sh":"I shape","e":2,"c":0,"alg":"R U2 R2 U' R U' R' U2 F R F'","note":"","b":"010010010000000111111"},{"n":56,"sh":"I shape","e":2,"c":0,"alg":"r U r' U R U' R' U R U' R' r U' r'","note":"","b":"000111000010010101101"},{"n":57,"sh":"Corners oriented","e":2,"c":4,"alg":"R U R' U' M' U R U' r'","note":"","b":"101111101010010000000"}];
+var PLL=[{"n":"Ua","g":"Edges only","d":"Edges: 3-cycle | Corners: solved","alg":"R U' R U R U R U' R' U' R2","s":"BBBGOGRGRORO","cyc":[[3,7,5]]},{"n":"Ub","g":"Edges only","d":"Edges: 3-cycle | Corners: solved","alg":"R2 U R U R' U' R' U' R' U R'","s":"BBBGRGROROGO","cyc":[[3,5,7]]},{"n":"H","g":"Edges only","d":"Edges: 2 swaps | Corners: solved","alg":"M2 U M2 U2 M2 U M2","s":"BGBGBGRORORO","cyc":[[3,5],[1,7]]},{"n":"Z","g":"Edges only","d":"Edges: 2 swaps | Corners: solved","alg":"M' U M2' U M2' U M' U2 M2' U'","s":"BOBGRGRGROBO","cyc":[[3,7],[1,5]]},{"n":"Aa","g":"Corners only","d":"Corners: 3-cycle | Edges: solved","alg":"x R' U R' D2 R U' R' D2 R2 x'","s":"OBOGGBBRRGOR","cyc":[[0,2,8]]},{"n":"Ab","g":"Corners only","d":"Corners: 3-cycle | Edges: solved","alg":"x R2 D2 R U R' D2 R U' R x'","s":"GBRGGOORRBOB","cyc":[[0,8,2]]},{"n":"E","g":"Corners only","d":"Corners: 2 swaps | Edges: solved","alg":"x' R U' R' D R U R' D' R U R' D R U' R' D' x","s":"RBORGOGRBGOB","cyc":[[0,6],[2,8]]},{"n":"T","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U R' U' R' F R2 U' R' U' R U R' F'","s":"BBOGGORORGRB","cyc":[[3,5],[2,8]]},{"n":"Y","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"F R U' R' U' R U R' F' R U R' U' R' F R F'","s":"GRBGGBOBROOR","cyc":[[0,8],[3,1]]},{"n":"F","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R","s":"BGOGBORRRGOB","cyc":[[1,7],[2,8]]},{"n":"Ja","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"L' U' L F L' U' L U L F' L2 U L U","s":"RBBRRGGGBOOO","cyc":[[0,6],[3,7]]},{"n":"Jb","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U R' F' R U R' U' R' F R2 U' R' U'","s":"BBOGOORRRGGB","cyc":[[2,8],[7,5]]},{"n":"Ra","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U' R' U' R U R D R' U' R D' R' U2 R' U'","s":"BROGGORBRGOB","cyc":[[2,8],[3,1]]},{"n":"Rb","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R2 F R U R U' R' F' R U2 R' U2 R U","s":"BBOGRORGRGOB","cyc":[[2,8],[3,7]]},{"n":"V","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R' U R' U' y R' F' R2 U' R' U R' F R F","s":"BBGBOGRRORGO","cyc":[[0,8],[1,5]]},{"n":"Na","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'","s":"BBGBGGROORRO","cyc":[[6,2],[3,5]]},{"n":"Nb","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R' U R U' R' F' U' F R U R' F R' F' R U' R","s":"GBBGGBOORORR","cyc":[[0,8],[3,5]]},{"n":"Ga","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R2 U R' U R' U' R U' R2 D U' R' U R D' U","s":"ORGRGGBOBRBO","cyc":[[0,2,6],[3,5,1]]},{"n":"Gb","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R' U' R U D' R2 U R' U R U' R U' R2 D U'","s":"RGBORBGBGOOR","cyc":[[0,6,8],[3,1,7]]},{"n":"Gc","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R2 U' R U' R U R' U R2 D' U R U' R' D U'","s":"RBBORBGOGOGR","cyc":[[0,6,8],[3,5,7]]},{"n":"Gd","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R U R' U' D R2 U' R U' R' U R' U R2 D' U","s":"ORGRBGBGBROO","cyc":[[0,2,6],[3,7,1]]}];
+
+var TWO_DEF=[[2,"Step 1: make the yellow cross","Dot: no yellow edges"],[44,"Step 1: make the yellow cross","L: two yellow edges side by side"],[45,"Step 1: make the yellow cross","Line: two yellow edges across"],[27,"Step 2: turn the corners (cross already done)","Sune: 1 yellow corner"],[26,"Step 2: turn the corners (cross already done)","Anti-Sune: 1 yellow corner"],[22,"Step 2: turn the corners (cross already done)","Pi: 0 yellow corners"],[21,"Step 2: turn the corners (cross already done)","H: 0 yellow corners"],[23,"Step 2: turn the corners (cross already done)","Headlights: 2 yellow corners"],[24,"Step 2: turn the corners (cross already done)","Chameleon: 2 yellow corners"],[25,"Step 2: turn the corners (cross already done)","Bowtie: 2 yellow corners"]];
+function twoList(){return TWO_DEF.map(function(t){var o=OLL.filter(function(x){return x.n===t[0]})[0],c={};for(var k in o)c[k]=o[k];c.sh=t[1];c.tag=t[2];return c})}
+var NOTES={TWO:'The shortcut: only 10 algorithms. First make the yellow cross (step 1), then turn the corners (step 2). Match the picture, then tap the card to see it on the 3D cube.',OLL:'All 57 cases. Yellow is a sticker facing up, grey is not. Match your top layer (front at the bottom), read the moves, and tap the card to see it on the 3D cube.',PLL:'The top is already yellow. Match the colored side stickers (front at the bottom). Arrows go from where a piece is to where it needs to go.'};
 
 var stage=document.getElementById('stage');
 var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
@@ -170,9 +188,9 @@ function finish(){
 }
 function drawAlg(){
  var el=document.getElementById('alg');
- if(!cur.alg.length){el.textContent='Choose a pattern on the right.';return}
+ if(!cur.alg.length){el.textContent='Tap a pattern below to see it here.';return}
  el.innerHTML=cur.alg.map(function(t,i){return '<span class="'+(i<cur.idx?'done':i===cur.idx?'next':'')+'">'+t+'</span>'}).join(' ');
- document.getElementById('meta').textContent=cur.name+(cur.idx>=cur.alg.length?': solved. Press "Show pattern again" to replay.':'');
+ document.getElementById('meta').textContent=cur.name+(cur.note?'. '+cur.note:'')+(cur.idx>=cur.alg.length?' Done. Press "Show pattern again" to replay.':'');
 }
 function tick(now){
  requestAnimationFrame(tick);
@@ -196,24 +214,66 @@ function frameFix(){
   instant('x');
  }
 }
-function loadCase(name,alg){
+function loadCase(name,alg,note){
  queue=[];anim=null;build();
  inverse(alg).forEach(instant);
  frameFix();
- cur={alg:alg.split(' '),idx:0,name:name};drawAlg();
+ cur={alg:alg.split(' '),idx:0,name:name,note:note||''};drawAlg();
 }
-var mode='PLL',curBtn=null;
+var curBtn=null,mode='TWO';
+var YEL='#FFD500',GREY='#3A3F4A',SCOL={R:'#D93A3A',O:'#F28C28',B:'#2C6FD1',G:'#2EA84F'};
+function diagram(o){
+ var S=110,pad=3,t=8,g=2,off=pad+t+g,c=(S-2*off-2*g)/3,f=function(v){return o.pll?SCOL[v]:(v==='1'?YEL:GREY)};
+ var P=function(i){return off+i*(c+g)},s='<svg viewBox="0 0 110 110" role="img" aria-label="'+o.label+'"><rect width="110" height="110" rx="10" fill="#14151B"/>';
+ for(var r=0;r<3;r++)for(var k=0;k<3;k++){var col=o.pll?YEL:(o.top[r*3+k]==='1'?YEL:GREY);s+='<rect x="'+P(k).toFixed(1)+'" y="'+P(r).toFixed(1)+'" width="'+c.toFixed(1)+'" height="'+c.toFixed(1)+'" rx="3" fill="'+col+'"/>'}
+ for(k=0;k<3;k++){
+  s+='<rect x="'+P(k).toFixed(1)+'" y="'+pad+'" width="'+c.toFixed(1)+'" height="'+t+'" rx="2" fill="'+f(o.side[k])+'"/>';
+  s+='<rect x="'+P(k).toFixed(1)+'" y="'+(S-pad-t)+'" width="'+c.toFixed(1)+'" height="'+t+'" rx="2" fill="'+f(o.side[3+k])+'"/>';
+  s+='<rect x="'+pad+'" y="'+P(k).toFixed(1)+'" width="'+t+'" height="'+c.toFixed(1)+'" rx="2" fill="'+f(o.side[6+k])+'"/>';
+  s+='<rect x="'+(S-pad-t)+'" y="'+P(k).toFixed(1)+'" width="'+t+'" height="'+c.toFixed(1)+'" rx="2" fill="'+f(o.side[9+k])+'"/>';
+ }
+ var C=function(i){return[P(i%3)+c/2,P(Math.floor(i/3))+c/2]};
+ function head(p,a,col,w){var h='';[a+2.6,a-2.6].forEach(function(b){h+='<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+(p[0]+6*Math.cos(b)).toFixed(1)+'" y2="'+(p[1]+6*Math.sin(b)).toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"/>'});return h}
+ [['#fff',4.6],['#14151B',2.2]].forEach(function(st){
+  (o.cyc||[]).forEach(function(cy){
+   var n=cy.length;
+   for(var j=0;j<(n===2?1:n);j++){
+    var a=C(cy[j]),b=C(cy[(j+1)%n]),dx=b[0]-a[0],dy=b[1]-a[1],L=Math.sqrt(dx*dx+dy*dy),ux=dx/L,uy=dy/L,cut=7;
+    var p=[a[0]+ux*cut,a[1]+uy*cut],q=[b[0]-ux*cut,b[1]-uy*cut];
+    if(n===2){s+='<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="'+st[0]+'" stroke-width="'+st[1]+'" stroke-linecap="round"/>'+head(q,Math.atan2(dy,dx),st[0],st[1])+head(p,Math.atan2(-dy,-dx),st[0],st[1])}
+    else{var mx=(p[0]+q[0])/2-uy*9,my=(p[1]+q[1])/2+ux*9;
+     s+='<path d="M'+p[0].toFixed(1)+' '+p[1].toFixed(1)+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+q[0].toFixed(1)+' '+q[1].toFixed(1)+'" fill="none" stroke="'+st[0]+'" stroke-width="'+st[1]+'" stroke-linecap="round"/>'+head(q,Math.atan2(q[1]-my,q[0]-mx),st[0],st[1])}
+   }
+  });
+ });
+ return s+'</svg>';
+}
 function fillCases(){
- var box=document.getElementById('cases');box.innerHTML='';
- (mode==='PLL'?PLL:OLL).forEach(function(c){
-  var b=document.createElement('button');b.textContent=mode==='PLL'?c[0]:'OLL '+c[0];
-  b.onclick=function(){if(curBtn)curBtn.classList.remove('on');b.classList.add('on');curBtn=b;loadCase((mode==='PLL'?'PLL ':'OLL ')+c[0],c[1])};
-  box.appendChild(b);
+ var box=document.getElementById('cases'),nav=document.getElementById('shapeNav');box.innerHTML='';nav.innerHTML='';
+ var list=mode==='PLL'?PLL:mode==='TWO'?twoList():OLL,groups=[],idx={};
+ list.forEach(function(c){var k=mode==='PLL'?c.g:c.sh;if(!(k in idx)){idx[k]=groups.length;groups.push({k:k,items:[]})}groups[idx[k]].items.push(c)});
+ document.getElementById('galnote').textContent=NOTES[mode];
+ groups.forEach(function(gp,gi){
+  var id='grp'+gi,a=document.createElement('a');a.href='#'+id;a.textContent=gp.k;a.onclick=function(e){e.preventDefault();document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'})};nav.appendChild(a);
+  var h=document.createElement('h3');h.id=id;h.textContent=gp.k;box.appendChild(h);
+  var grid=document.createElement('div');grid.className='grid';
+  gp.items.forEach(function(c){
+   var label=(mode==='PLL'?'PLL ':'OLL ')+c.n,b=document.createElement('button');b.className='gc';
+   var d=mode==='PLL'?diagram({pll:1,side:c.s.split(''),cyc:c.cyc,label:label}):diagram({top:c.b.slice(0,9),side:c.b.slice(9).split(''),label:label});
+   b.setAttribute('aria-label','Show '+label+' on the 3D cube');
+   b.innerHTML=d+'<div class="nm">'+label+'</div><div class="sm">'+(c.tag||(mode==='PLL'?c.d:'Edges '+c.e+'/4 | Corners '+c.c+'/4 oriented'))+'</div><div class="al">'+c.alg+'</div>'+(c.note?'<div class="nt">'+c.note+'</div>':'');
+   b.onclick=function(){if(curBtn)curBtn.classList.remove('on');b.classList.add('on');curBtn=b;loadCase(label,c.alg,c.note);
+    var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;stage.scrollIntoView({behavior:rm?'auto':'smooth',block:'nearest'})};
+   grid.appendChild(b);
+  });
+  box.appendChild(grid);
  });
 }
 document.getElementById('tPLL').onclick=function(){mode='PLL';setTabs()};
+document.getElementById('tTWO').onclick=function(){mode='TWO';setTabs()};
 document.getElementById('tOLL').onclick=function(){mode='OLL';setTabs()};
 function setTabs(){
+ document.getElementById('tTWO').setAttribute('aria-pressed',mode==='TWO');
  document.getElementById('tPLL').setAttribute('aria-pressed',mode==='PLL');
  document.getElementById('tOLL').setAttribute('aria-pressed',mode==='OLL');curBtn=null;fillCases();
 }
@@ -225,10 +285,10 @@ document.getElementById('step').onclick=function(){
  if(anim||queue.length||cur.idx>=cur.alg.length)return;queue.push({tok:cur.alg[cur.idx],alg:1});
 };
 document.getElementById('again').onclick=function(){
- if(cur.alg.length)loadCase(cur.name,cur.alg.join(' '));
+ if(cur.alg.length)loadCase(cur.name,cur.alg.join(' '),cur.note);
 };
 document.getElementById('face').onclick=function(){if(anim||queue.length)return;cube.quaternion.set(0,0,0,1);frameFix();};
-document.getElementById('solved').onclick=function(){queue=[];anim=null;build();cur={alg:[],idx:0,name:''};drawAlg();document.getElementById('meta').textContent='';};
+document.getElementById('solved').onclick=function(){queue=[];anim=null;build();cur={alg:[],idx:0,name:'',note:''};drawAlg();document.getElementById('meta').textContent='';};
 var pad=document.getElementById('pad');
 ['U','D','L','R','F','B'].forEach(function(m){["","'"].forEach(function(p){});});
 ["U","D","L","R","F","B","U'","D'","L'","R'","F'","B'"].forEach(function(m){
