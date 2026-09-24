@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "3D Rubik's Cube Trainer",
+  "short_name": "Cube Trainer",
+  "description": "Interactive 3D Rubik's cube trainer with all 57 OLL and 21 PLL cases.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14151B",
+  "theme_color": "#14151B",
+  "categories": ["education", "games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

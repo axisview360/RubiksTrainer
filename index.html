@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3D Rubik's Cube Trainer</title>
+<meta name="description" content="Interactive 3D Rubik's cube trainer with all 57 OLL and 21 PLL cases.">
+<meta name="theme-color" content="#14151B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cube Trainer">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#F5F6F8;--card:#FFFFFF;--ink:#16181D;--mute:#5B6270;--line:#D8DBE2;--accent:#1D5AA6;--chip:#EEF0F4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111318;--card:#1A1D24;--ink:#ECEEF2;--mute:#9AA1AF;--line:#2C313B;--accent:#7FB0F0;--chip:#242832}}
+:root[data-theme="dark"]{--bg:#111318;--card:#1A1D24;--ink:#ECEEF2;--mute:#9AA1AF;--line:#2C313B;--accent:#7FB0F0;--chip:#242832}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 14px}
+.wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+@media(max-width:820px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+#stage{position:relative;height:min(62vw,420px);min-height:300px;border-radius:10px;background:var(--chip);touch-action:none;cursor:grab;overflow:hidden}
+#stage canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--mute);pointer-events:none}
+h2{font-size:15px;margin:0 0 8px}
+.sec{margin-bottom:14px}
+button{font:inherit;color:var(--ink);background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.cases button{min-width:46px;padding:6px 8px}
+.pad{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.sw{width:32px;height:32px;padding:0;border-radius:8px;border:2px solid var(--line)}
+.sw[aria-pressed="true"]{border-color:var(--ink);outline:2px solid var(--accent);outline-offset:1px;background-clip:padding-box}
+#alg{font:600 18px/1.9 ui-monospace,Menlo,Consolas,monospace;margin:6px 0}
+#alg span{padding:1px 5px;border-radius:5px;margin-right:2px}
+#alg span.done{color:var(--mute);text-decoration:line-through}
+#alg span.next{background:var(--accent);color:#fff}
+.note{color:var(--mute);font-size:13px;margin:6px 0 0}
+#counts{font-size:13px;margin-top:8px}
+#counts b{color:#C0392B}
+.tabs button{border-radius:8px 8px 0 0}
+</style>
+</head>
+<body>
+<main>
+<h1>3D Rubik's Cube Trainer</h1>
+<p class="sub">Pick a pattern and the cube shows it for you. No need to paint the colors again. <button id="install" hidden>Install app</button></p>
+<div class="wrap">
+ <div class="card">
+  <div id="stage"><div class="hint">Drag to rotate. Green front, yellow top, red left, orange right.</div></div>
+  <div class="row" style="margin-top:10px">
+   <button id="play">Play solution</button>
+   <button id="step">Next move</button>
+   <button id="again">Show pattern again</button>
+   <button id="solved">Solved cube</button>
+   <button id="face">Reset facing</button>
+  </div>
+  <div id="algbox" style="margin-top:8px"><div id="alg" aria-live="polite">Choose a pattern on the right.</div><div id="meta" class="note"></div></div>
+ </div>
+ <div>
+  <div class="card sec">
+   <h2>Patterns</h2>
+   <div class="row tabs" role="tablist" style="margin-bottom:8px">
+    <button id="tPLL" aria-pressed="true">PLL (last step)</button>
+    <button id="tOLL" aria-pressed="false">OLL 1 to 57</button>
+   </div>
+   <div id="cases" class="row cases"></div>
+   <p class="note">The cube is shown as if the first two layers are solved. Play the moves, or step through them one at a time.</p>
+  </div>
+  <div class="card sec">
+   <h2>Turn the cube yourself</h2>
+   <div class="pad" id="pad"></div>
+  </div>
+  <div class="card">
+   <h2>Paint your own cube</h2>
+   <div class="row" id="pal" style="margin-bottom:8px"></div>
+   <div class="row"><button id="paint" aria-pressed="false">Paint mode: off</button><button id="resetPaint">Reset paint</button></div>
+   <p class="note">Turn paint mode on, choose a color, then tap a sticker to change it.</p>
+   <div id="counts"></div>
+  </div>
+ </div>
+</div>
+</main>
+<script src="three.min.js"></script>
+<script>
+(function(){
+var COLORS={Y:0xFFD500,W:0xF2F2F2,G:0x2EA84F,B:0x2C6FD1,R:0xD93A3A,O:0xF28C28};
+var NAMES={Y:"Yellow",W:"White",G:"Green",B:"Blue",R:"Red",O:"Orange"};
+var PLL=[["Ua","R U' R U R U R U' R' U' R2"],["Ub","R2 U R U R' U' R' U' R' U R'"],["H","M2 U M2 U2 M2 U M2"],["Z","M' U M2' U M2' U M' U2 M2' U'"],["Aa","x R' U R' D2 R U' R' D2 R2 x'"],["Ab","x R2 D2 R U R' D2 R U' R x'"],["E","x' R U' R' D R U R' D' R U R' D R U' R' D' x"],["T","R U R' U' R' F R2 U' R' U' R U R' F'"],["Y","F R U' R' U' R U R' F' R U R' U' R' F R F'"],["F","R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R"],["Ja","L' U' L F L' U' L U L F' L2 U L U"],["Jb","R U R' F' R U R' U' R' F R2 U' R' U'"],["Ra","R U' R' U' R U R D R' U' R D' R' U2 R' U'"],["Rb","R2 F R U R U' R' F' R U2 R' U2 R U"],["V","R' U R' U' y R' F' R2 U' R' U R' F R F"],["Na","R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'"],["Nb","R' U R U' R' F' U' F R U R' F R' F' R U' R"],["Ga","R2 U R' U R' U' R U' R2 D U' R' U R D' U"],["Gb","R' U' R U D' R2 U R' U R U' R U' R2 D U'"],["Gc","R2 U' R U' R U R' U R2 D' U R U' R' D U'"],["Gd","R U R' U' D R2 U' R U' R' U R' U R2 D' U"]];
+var OLL=[["1", "R U2 R2 F R F' U2 R' F R F'"], ["2", "F R U R' U' F' f R U R' U' f'"], ["3", "f R U R' U' f' U' F R U R' U' F'"], ["4", "f R U R' U' f' U F R U R' U' F'"], ["5", "r' U2 R U R' U r"], ["6", "r U2 R' U' R U' r'"], ["7", "r U R' U R U2 r'"], ["8", "r' U' R U' R' U2 r"], ["9", "R U R' U' R' F R2 U R' U' F'"], ["10", "R U R' U R' F R F' R U2 R'"], ["11", "r U R' U R' F R F' R U2 r'"], ["12", "F R U R' U' F' U F R U R' U' F'"], ["13", "F U R U2 R' U' R U R' F'"], ["14", "R' F R U R' F' R F U' F'"], ["15", "r' U' r R' U' R U r' U r"], ["16", "r U r' R U R' U' r U' r'"], ["17", "R U R' U R' F R F' U2 R' F R F'"], ["18", "r U R' U R U2 r2 U' R U' R' U2 r"], ["19", "r' R U R U R' U' M' R' F R F'"], ["20", "r U R' U' M2 U R U' R' U' M'"], ["21", "R U2 R' U' R U R' U' R U' R'"], ["22", "R U2 R2 U' R2 U' R2 U2 R"], ["23", "R2 D R' U2 R D' R' U2 R'"], ["24", "r U R' U' r' F R F'"], ["25", "F' r U R' U' r' F R"], ["26", "R U2 R' U' R U' R'"], ["27", "R U R' U R U2 R'"], ["28", "r U R' U' r' R U R U' R'"], ["29", "R U R' U' R U' R' F' U' F R U R'"], ["30", "F R' F R2 U' R' U' R U R' F2"], ["31", "R' U' F U R U' R' F' R"], ["32", "R U B' U' R' U R B R'"], ["33", "R U R' U' R' F R F'"], ["34", "R U R2 U' R' F R U R U' F'"], ["35", "R U2 R2 F R F' R U2 R'"], ["36", "R' U' R U' R' U R U R B' R' B"], ["37", "F R' F' R U R U' R'"], ["38", "R U R' U R U' R' U' R' F R F'"], ["39", "R U R' F' U' F U R U2 R'"], ["40", "R' F R U R' U' F' U R"], ["41", "R U R' U R U2 R' F R U R' U' F'"], ["42", "R' U' R U' R' U2 R F R U R' U' F'"], ["43", "R' U' F' U F R"], ["44", "F U R U' R' F'"], ["45", "F R U R' U' F'"], ["46", "R' U' R' F R F' U R"], ["47", "R' U' R' F R F' R' F R F' U R"], ["48", "F R U R' U' R U R' U' F'"], ["49", "R B' R2 F R2 B R2 F' R"], ["50", "R' F R2 B' R2 F' R2 B R'"], ["51", "f R U R' U' R U R' U' f'"], ["52", "R U R' U R d' R U' R' F'"], ["53", "r' U' R U' R' U R U' R' U2 r"], ["54", "r U R' U R U' R' U R U2 r'"], ["55", "R U2 R2 U' R U' R' U2 F R F'"], ["56", "r U r' U R U' R' U R U' R' r U' r'"], ["57", "R U R' U' M' U R U' r'"]];
+
+var stage=document.getElementById('stage');
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+stage.appendChild(renderer.domElement);
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(38,1,0.1,50);
+camera.position.set(4.6,4.0,6.0);camera.lookAt(0,0,0);
+var cube=new THREE.Group();scene.add(cube);
+cube.quaternion.setFromEuler(new THREE.Euler(0,0,0));
+var stickers=[],cubies=[];
+var bodyGeo=new THREE.BoxGeometry(0.97,0.97,0.97),bodyMat=new THREE.MeshBasicMaterial({color:0x14151B}),stGeo=new THREE.PlaneGeometry(0.84,0.84);
+var NORMALS=[[0,1,0,'Y'],[0,-1,0,'W'],[0,0,1,'G'],[0,0,-1,'B'],[1,0,0,'O'],[-1,0,0,'R']];
+
+function build(){
+ while(cube.children.length)cube.remove(cube.children[0]);
+ stickers=[];cubies=[];
+ for(var x=-1;x<=1;x++)for(var y=-1;y<=1;y++)for(var z=-1;z<=1;z++){
+  var g=new THREE.Group();g.position.set(x,y,z);g.add(new THREE.Mesh(bodyGeo,bodyMat));
+  var p=[x,y,z];
+  NORMALS.forEach(function(n){
+   var ax=n[0]?0:n[1]?1:2;var s=n[ax]; if(p[ax]!==s)return;
+   var m=new THREE.Mesh(stGeo,new THREE.MeshBasicMaterial({color:COLORS[n[3]]}));
+   var v=new THREE.Vector3(n[0],n[1],n[2]);
+   m.position.copy(v).multiplyScalar(0.487);
+   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),v);
+   g.add(m);stickers.push(m);g.userData.st=m;
+  });
+  cube.add(g);cubies.push(g);
+ }
+ stickers.forEach(function(s){s.userData.orig=s.material.color.getHex()});
+ updateCounts();
+}
+function snap(c){
+ c.position.set(Math.round(c.position.x),Math.round(c.position.y),Math.round(c.position.z));
+ var m=new THREE.Matrix4().makeRotationFromQuaternion(c.quaternion);
+ m.elements=m.elements.map(function(v){return Math.round(v)});
+ c.quaternion.setFromRotationMatrix(m);
+}
+var DEF={R:['x',function(c){return c.position.x>0.5},-1],L:['x',function(c){return c.position.x<-0.5},1],M:['x',function(c){return Math.abs(c.position.x)<0.5},1],
+r:['x',function(c){return c.position.x>-0.5},-1],U:['y',function(c){return c.position.y>0.5},-1],D:['y',function(c){return c.position.y<-0.5},1],
+F:['z',function(c){return c.position.z>0.5},-1],B:['z',function(c){return c.position.z<-0.5},1],f:['z',function(c){return c.position.z>-0.5},-1],d:['y',function(c){return c.position.y<0.5},1],x:['x',function(){return true},-1],y:['y',function(){return true},-1]};
+var AX={x:new THREE.Vector3(1,0,0),y:new THREE.Vector3(0,1,0),z:new THREE.Vector3(0,0,1)};
+function info(tok){
+ var d=DEF[tok[0]],k=tok.indexOf('2')>=0?2:1,dir=d[2]*(tok.slice(-1)==="'"&&k===1?-1:1);
+ var sel=cubies.filter(function(c){return d[1](c)});
+ return{axis:AX[d[0]],angle:dir*k*Math.PI/2,sel:sel};
+}
+function instant(tok){
+ var i=info(tok),q=new THREE.Quaternion().setFromAxisAngle(i.axis,i.angle);
+ i.sel.forEach(function(c){c.position.applyAxisAngle(i.axis,i.angle);c.quaternion.premultiply(q);snap(c)});
+}
+function inverse(alg){
+ return alg.split(' ').reverse().map(function(t){return t.indexOf('2')>=0?t[0]+'2':t.slice(-1)==="'"?t[0]:t+"'"});
+}
+var queue=[],anim=null,cur={alg:[],idx:0,name:''};
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+function start(item){
+ var i=info(item.tok),p=new THREE.Group();cube.add(p);
+ i.sel.forEach(function(c){p.attach(c)});
+ anim={p:p,i:i,t0:performance.now(),dur:Math.abs(i.angle)>2?520:300,item:item};
+}
+function finish(){
+ var a=anim;a.p.rotation.set(0,0,0);
+ a.p.rotation[a.i.axis.x?'x':a.i.axis.y?'y':'z']=a.i.angle;a.p.updateMatrix();
+ a.i.sel.forEach(function(c){cube.attach(c);snap(c)});
+ cube.remove(a.p);
+ if(a.item.alg){cur.idx++;drawAlg();}
+ anim=null;updateCounts();
+}
+function drawAlg(){
+ var el=document.getElementById('alg');
+ if(!cur.alg.length){el.textContent='Choose a pattern on the right.';return}
+ el.innerHTML=cur.alg.map(function(t,i){return '<span class="'+(i<cur.idx?'done':i===cur.idx?'next':'')+'">'+t+'</span>'}).join(' ');
+ document.getElementById('meta').textContent=cur.name+(cur.idx>=cur.alg.length?': solved. Press "Show pattern again" to replay.':'');
+}
+function tick(now){
+ requestAnimationFrame(tick);
+ if(!anim&&queue.length)start(queue.shift());
+ if(anim){
+  var t=Math.min(1,(now-anim.t0)/anim.dur),k=ease(t);
+  anim.p.rotation[anim.i.axis.x?'x':anim.i.axis.y?'y':'z']=anim.i.angle*k;
+  if(t>=1)finish();
+ }
+ renderer.render(scene,camera);
+}
+function resize(){
+ var w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',resize);resize();
+
+function frameFix(){
+ function center(x,y,z){return cubies.filter(function(q){return q.position.x===x&&q.position.y===y&&q.position.z===z})[0].userData.st.material.color.getHex()}
+ outer:for(var a=0;a<4;a++){
+  for(var b=0;b<4;b++){if(center(0,0,1)===COLORS.G&&center(0,1,0)===COLORS.Y)break outer;instant('y');}
+  instant('x');
+ }
+}
+function loadCase(name,alg){
+ queue=[];anim=null;build();
+ inverse(alg).forEach(instant);
+ frameFix();
+ cur={alg:alg.split(' '),idx:0,name:name};drawAlg();
+}
+var mode='PLL',curBtn=null;
+function fillCases(){
+ var box=document.getElementById('cases');box.innerHTML='';
+ (mode==='PLL'?PLL:OLL).forEach(function(c){
+  var b=document.createElement('button');b.textContent=mode==='PLL'?c[0]:'OLL '+c[0];
+  b.onclick=function(){if(curBtn)curBtn.classList.remove('on');b.classList.add('on');curBtn=b;loadCase((mode==='PLL'?'PLL ':'OLL ')+c[0],c[1])};
+  box.appendChild(b);
+ });
+}
+document.getElementById('tPLL').onclick=function(){mode='PLL';setTabs()};
+document.getElementById('tOLL').onclick=function(){mode='OLL';setTabs()};
+function setTabs(){
+ document.getElementById('tPLL').setAttribute('aria-pressed',mode==='PLL');
+ document.getElementById('tOLL').setAttribute('aria-pressed',mode==='OLL');curBtn=null;fillCases();
+}
+document.getElementById('play').onclick=function(){
+ if(anim||queue.length)return;
+ for(var i=cur.idx;i<cur.alg.length;i++)queue.push({tok:cur.alg[i],alg:1});
+};
+document.getElementById('step').onclick=function(){
+ if(anim||queue.length||cur.idx>=cur.alg.length)return;queue.push({tok:cur.alg[cur.idx],alg:1});
+};
+document.getElementById('again').onclick=function(){
+ if(cur.alg.length)loadCase(cur.name,cur.alg.join(' '));
+};
+document.getElementById('face').onclick=function(){if(anim||queue.length)return;cube.quaternion.set(0,0,0,1);frameFix();};
+document.getElementById('solved').onclick=function(){queue=[];anim=null;build();cur={alg:[],idx:0,name:''};drawAlg();document.getElementById('meta').textContent='';};
+var pad=document.getElementById('pad');
+['U','D','L','R','F','B'].forEach(function(m){["","'"].forEach(function(p){});});
+["U","D","L","R","F","B","U'","D'","L'","R'","F'","B'"].forEach(function(m){
+ var b=document.createElement('button');b.textContent=m;b.onclick=function(){queue.push({tok:m})};pad.appendChild(b);
+});
+
+var paintOn=false,sel='Y';
+var pal=document.getElementById('pal');
+Object.keys(COLORS).forEach(function(k){
+ var b=document.createElement('button');b.className='sw';b.style.background='#'+COLORS[k].toString(16).padStart(6,'0');
+ b.setAttribute('aria-label',NAMES[k]);b.setAttribute('aria-pressed',k===sel);
+ b.onclick=function(){sel=k;[].forEach.call(pal.children,function(x){x.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true')};
+ pal.appendChild(b);
+});
+var pb=document.getElementById('paint');
+pb.onclick=function(){paintOn=!paintOn;pb.setAttribute('aria-pressed',paintOn);pb.textContent='Paint mode: '+(paintOn?'on':'off');stage.style.cursor=paintOn?'crosshair':'grab'};
+document.getElementById('resetPaint').onclick=function(){
+ stickers.forEach(function(s){s.material.color.setHex(s.userData.orig)});updateCounts();
+};
+function updateCounts(){
+ var cnt={};Object.keys(COLORS).forEach(function(k){cnt[k]=0});
+ stickers.forEach(function(s){var h=s.material.color.getHex();for(var k in COLORS)if(COLORS[k]===h)cnt[k]++});
+ var bad=false,t=Object.keys(cnt).map(function(k){var o=cnt[k]!==9;if(o)bad=true;return (o?'<b>':'')+NAMES[k]+' '+cnt[k]+(o?'</b>':'')}).join(', ');
+ document.getElementById('counts').innerHTML='Stickers per color: '+t+(bad?'. A real cube has exactly 9 of each color.':'.');
+}
+var ray=new THREE.Raycaster(),down=null,moved=false;
+stage.addEventListener('pointerdown',function(e){down={x:e.clientX,y:e.clientY};moved=false;stage.setPointerCapture(e.pointerId)});
+stage.addEventListener('pointermove',function(e){
+ if(!down)return;var dx=e.clientX-down.x,dy=e.clientY-down.y;
+ if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
+ if(moved){
+  cube.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),dx*0.010));
+  cube.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),dy*0.010));
+  down={x:e.clientX,y:e.clientY};
+ }
+});
+stage.addEventListener('pointerup',function(e){
+ if(down&&!moved&&paintOn&&!anim){
+  var r=stage.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1)),camera);
+  var h=ray.intersectObjects(stickers)[0];
+  if(h){h.object.material.color.setHex(COLORS[sel]);updateCounts();}
+ }
+ down=null;
+});
+build();fillCases();requestAnimationFrame(tick);
+})();
+</script>
+<script>
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+ window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+}
+var deferredInstall=null;
+window.addEventListener('beforeinstallprompt',function(e){
+ e.preventDefault();deferredInstall=e;var b=document.getElementById('install');b.hidden=false;
+ b.onclick=function(){b.hidden=true;deferredInstall.prompt();deferredInstall=null;};
+});
+window.addEventListener('appinstalled',function(){document.getElementById('install').hidden=true;});
+</script>
+</body>
+</html>
