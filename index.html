@@ -21,13 +21,15 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:1100px;margin:0 auto;padding:16px}
+main{max-width:1240px;margin:0 auto;padding:16px}
 h1{font-size:22px;margin:4px 0 2px}
 .sub{color:var(--mute);margin:0 0 14px}
-.wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
-@media(max-width:820px){.wrap{grid-template-columns:1fr}}
+.layout{display:flex;align-items:flex-start;gap:14px}
+.left{flex:0 0 380px;max-width:380px;position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto;padding-right:2px}
+.right{flex:1;min-width:0}
+@media(max-width:860px){.layout{display:block}.left{position:static;max-width:none;max-height:none;overflow:visible;margin-bottom:14px}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
-#stage{position:relative;height:min(62vw,420px);min-height:300px;border-radius:10px;background:var(--chip);touch-action:none;cursor:grab;overflow:hidden}
+#stage{position:relative;aspect-ratio:1/1;min-height:260px;border-radius:10px;background:radial-gradient(ellipse at 50% 38%,var(--chip) 0%,var(--bg) 100%);touch-action:none;cursor:grab;overflow:hidden}
 #stage canvas{display:block;width:100%;height:100%}
 .hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--mute);pointer-events:none}
 h2{font-size:15px;margin:0 0 8px}
@@ -59,6 +61,7 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
 .gc .sm{font-size:12px;color:var(--mute)}
 .gc .al{font:700 14px/1.55 ui-monospace,Menlo,Consolas,monospace;margin-top:6px;word-break:break-word}
 .gc .nt{font-size:12px;color:var(--accent);margin-top:4px}
+.btns button{min-width:52px}
 .chips a{font-size:13px;color:var(--ink);text-decoration:none;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
 .chips a:hover{border-color:var(--accent)}
 </style>
@@ -67,24 +70,24 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
 <main>
 <h1>3D Rubik's Cube Trainer</h1>
 <p class="sub">Pick a pattern and the cube shows it for you. No need to paint the colors again. <button id="install" hidden>Install app</button></p>
-<div class="wrap">
- <div class="card">
-  <div id="stage"><div class="hint">Drag to rotate. Green front, yellow top, red left, orange right.</div></div>
-  <div class="row" style="margin-top:10px">
-   <button id="play">Play solution</button>
-   <button id="step">Next move</button>
-   <button id="again">Show pattern again</button>
-   <button id="solved">Solved cube</button>
-   <button id="face">Reset facing</button>
+<div class="layout">
+ <div class="left">
+  <div class="card">
+   <div id="stage"><div class="hint">Drag to rotate. Green front, yellow top, red left, orange right.</div></div>
+   <div class="row" style="margin-top:10px">
+    <button id="play">Play solution</button>
+    <button id="step">Next move</button>
+    <button id="again">Show pattern again</button>
+    <button id="solved">Solved cube</button>
+    <button id="face">Reset facing</button>
+   </div>
+   <div id="algbox" style="margin-top:8px"><div id="alg" aria-live="polite">Tap a pattern below to see it here.</div><div id="meta" class="note"></div></div>
   </div>
-  <div id="algbox" style="margin-top:8px"><div id="alg" aria-live="polite">Tap a pattern below to see it here.</div><div id="meta" class="note"></div></div>
- </div>
- <div>
-  <div class="card sec">
+  <div class="card sec" style="margin-top:14px">
    <h2>Turn the cube yourself</h2>
    <div class="pad" id="pad"></div>
   </div>
-  <div class="card">
+  <div class="card" style="margin-top:14px">
    <h2>Paint your own cube</h2>
    <div class="row" id="pal" style="margin-bottom:8px"></div>
    <div class="row"><button id="paint" aria-pressed="false">Paint mode: off</button><button id="resetPaint">Reset paint</button></div>
@@ -92,18 +95,23 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
    <div id="counts"></div>
   </div>
  </div>
-</div>
-<section class="card gal" id="gallery" style="margin-top:14px">
- <h2>Find your pattern</h2>
- <div class="row tabs" role="tablist" style="margin-bottom:8px">
-  <button id="tTWO" aria-pressed="true">2-look OLL (shortcut)</button>
-  <button id="tOLL" aria-pressed="false">All 57 OLL</button>
-  <button id="tPLL" aria-pressed="false">PLL (last step)</button>
+ <div class="right">
+  <section class="card gal" id="gallery">
+   <h2>Find your pattern</h2>
+   <div class="row tabs" role="tablist" style="margin-bottom:8px">
+    <button id="tTWO" aria-pressed="true">2-look OLL (shortcut)</button>
+    <button id="tTW" aria-pressed="false">Corner twist method</button>
+    <button id="tTF" aria-pressed="false">Corner Twist Finish</button>
+    <button id="tOLL" aria-pressed="false">All 57 OLL</button>
+    <button id="tPLL" aria-pressed="false">PLL (last step)</button>
+   </div>
+   <p class="note" id="galnote"></p>
+   <div class="row" style="margin-bottom:8px" role="group" aria-label="View"><span class="note" style="margin:0 4px 0 0;align-self:center">View:</span><button id="vCards" aria-pressed="true">Diagrams</button><button id="vBtn" aria-pressed="false">Buttons</button></div>
+   <div id="shapeNav" class="row chips" style="margin:8px 0"></div>
+   <div id="cases"></div>
+  </section>
  </div>
- <p class="note" id="galnote"></p>
- <div id="shapeNav" class="row chips" style="margin:8px 0"></div>
- <div id="cases"></div>
-</section>
+</div>
 </main>
 <script src="three.min.js"></script>
 <script>
@@ -114,8 +122,15 @@ var OLL=[{"n":1,"sh":"Dot (no edges oriented)","e":0,"c":0,"alg":"R U2 R2 F R F'
 var PLL=[{"n":"Ua","g":"Edges only","d":"Edges: 3-cycle | Corners: solved","alg":"R U' R U R U R U' R' U' R2","s":"BBBGOGRGRORO","cyc":[[3,7,5]]},{"n":"Ub","g":"Edges only","d":"Edges: 3-cycle | Corners: solved","alg":"R2 U R U R' U' R' U' R' U R'","s":"BBBGRGROROGO","cyc":[[3,5,7]]},{"n":"H","g":"Edges only","d":"Edges: 2 swaps | Corners: solved","alg":"M2 U M2 U2 M2 U M2","s":"BGBGBGRORORO","cyc":[[3,5],[1,7]]},{"n":"Z","g":"Edges only","d":"Edges: 2 swaps | Corners: solved","alg":"M' U M2' U M2' U M' U2 M2' U'","s":"BOBGRGRGROBO","cyc":[[3,7],[1,5]]},{"n":"Aa","g":"Corners only","d":"Corners: 3-cycle | Edges: solved","alg":"x R' U R' D2 R U' R' D2 R2 x'","s":"OBOGGBBRRGOR","cyc":[[0,2,8]]},{"n":"Ab","g":"Corners only","d":"Corners: 3-cycle | Edges: solved","alg":"x R2 D2 R U R' D2 R U' R x'","s":"GBRGGOORRBOB","cyc":[[0,8,2]]},{"n":"E","g":"Corners only","d":"Corners: 2 swaps | Edges: solved","alg":"x' R U' R' D R U R' D' R U R' D R U' R' D' x","s":"RBORGOGRBGOB","cyc":[[0,6],[2,8]]},{"n":"T","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U R' U' R' F R2 U' R' U' R U R' F'","s":"BBOGGORORGRB","cyc":[[3,5],[2,8]]},{"n":"Y","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"F R U' R' U' R U R' F' R U R' U' R' F R F'","s":"GRBGGBOBROOR","cyc":[[0,8],[3,1]]},{"n":"F","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R","s":"BGOGBORRRGOB","cyc":[[1,7],[2,8]]},{"n":"Ja","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"L' U' L F L' U' L U L F' L2 U L U","s":"RBBRRGGGBOOO","cyc":[[0,6],[3,7]]},{"n":"Jb","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U R' F' R U R' U' R' F R2 U' R' U'","s":"BBOGOORRRGGB","cyc":[[2,8],[7,5]]},{"n":"Ra","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U' R' U' R U R D R' U' R D' R' U2 R' U'","s":"BROGGORBRGOB","cyc":[[2,8],[3,1]]},{"n":"Rb","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R2 F R U R U' R' F' R U2 R' U2 R U","s":"BBOGRORGRGOB","cyc":[[2,8],[3,7]]},{"n":"V","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R' U R' U' y R' F' R2 U' R' U R' F R F","s":"BBGBOGRRORGO","cyc":[[0,8],[1,5]]},{"n":"Na","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'","s":"BBGBGGROORRO","cyc":[[6,2],[3,5]]},{"n":"Nb","g":"Edges and corners","d":"Edges: swap | Corners: swap","alg":"R' U R U' R' F' U' F R U R' F R' F' R U' R","s":"GBBGGBOORORR","cyc":[[0,8],[3,5]]},{"n":"Ga","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R2 U R' U R' U' R U' R2 D U' R' U R D' U","s":"ORGRGGBOBRBO","cyc":[[0,2,6],[3,5,1]]},{"n":"Gb","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R' U' R U D' R2 U R' U R U' R U' R2 D U'","s":"RGBORBGBGOOR","cyc":[[0,6,8],[3,1,7]]},{"n":"Gc","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R2 U' R U' R U R' U R2 D' U R U' R' D U'","s":"RBBORBGOGOGR","cyc":[[0,6,8],[3,5,7]]},{"n":"Gd","g":"Edges and corners","d":"Edges: 3-cycle | Corners: 3-cycle","alg":"R U R' U' D R2 U' R U' R' U R' U R2 D' U","s":"ORGRBGBGBROO","cyc":[[0,2,6],[3,7,1]]}];
 
 var TWO_DEF=[[2,"Step 1: make the yellow cross","Dot: no yellow edges"],[44,"Step 1: make the yellow cross","L: two yellow edges side by side"],[45,"Step 1: make the yellow cross","Line: two yellow edges across"],[27,"Step 2: turn the corners (cross already done)","Sune: 1 yellow corner"],[26,"Step 2: turn the corners (cross already done)","Anti-Sune: 1 yellow corner"],[22,"Step 2: turn the corners (cross already done)","Pi: 0 yellow corners"],[21,"Step 2: turn the corners (cross already done)","H: 0 yellow corners"],[23,"Step 2: turn the corners (cross already done)","Headlights: 2 yellow corners"],[24,"Step 2: turn the corners (cross already done)","Chameleon: 2 yellow corners"],[25,"Step 2: turn the corners (cross already done)","Bowtie: 2 yellow corners"]];
+var TW_G="Corner twist method (after the yellow cross)";
+var TW_PLAY={"24":"U U R' D' R D R' D' R D R' D' R D R' D' R D U R' D' R D R' D' R D U","27":"R' D' R D R' D' R D R' D' R D R' D' R D U R' D' R D R' D' R D R' D' R D R' D' R D U R' D' R D R' D' R D R' D' R D R' D' R D U U","26":"R' D' R D R' D' R D U U R' D' R D R' D' R D U R' D' R D R' D' R D U"};
+var TW_DEF=[[24,"Yellow on top","Yellow already on top: do nothing to this corner","Just turn U to bring the next corner to the front-right."],[27,"Yellow facing front","Yellow faces the front: repeat 4 times","Then turn U to bring the next corner to the front-right."],[26,"Yellow facing right","Yellow faces the right: repeat 2 times","Then turn U to bring the next corner to the front-right."]];
+function twList(){return TW_DEF.map(function(t){var o=OLL.filter(function(x){return x.n===t[0]})[0],c={};for(var k in o)c[k]=o[k];c.sh=TW_G;c.n=t[1];c.tag=t[2];c.note=t[3];c.alg="R' D' R D";c.play=TW_PLAY[String(t[0])];c.ring=1;return c})}
 function twoList(){return TWO_DEF.map(function(t){var o=OLL.filter(function(x){return x.n===t[0]})[0],c={};for(var k in o)c[k]=o[k];c.sh=t[1];c.tag=t[2];return c})}
-var NOTES={TWO:'The shortcut: only 10 algorithms. First make the yellow cross (step 1), then turn the corners (step 2). Match the picture, then tap the card to see it on the 3D cube.',OLL:'All 57 cases. Yellow is a sticker facing up, grey is not. Match your top layer (front at the bottom), read the moves, and tap the card to see it on the 3D cube.',PLL:'The top is already yellow. Match the colored side stickers (front at the bottom). Arrows go from where a piece is to where it needs to go.'};
+var TF_G="Corner Twist Finish (only when every corner is in its correct slot, just twisted)";
+var TF_DEF=[{"n":"Case 1: Diagonal pair","tag":"Two twisted corners, diagonally opposite.","alg":"F L' D2 L F' U2 F L' D2 L F' U2","badges":[[0,"CCW"],[8,"CW"]]},{"n":"Case 2: Front pair, pointing outward","tag":"Two twisted corners on the front, pointing outward.","alg":"U F2 U' R F2 D' F2 D R2 U' R U F2","badges":[[6,"CCW"],[8,"CW"]]},{"n":"Case 3: Right pair, same side","tag":"Two twisted corners on the right side, same way.","alg":"U R D' R2 U F2 U' F2 R U' R2 D R2","badges":[[2,"CCW"],[8,"CW"]]},{"n":"Case 4: Three corners, clockwise","tag":"Three twisted corners, all turning clockwise.","alg":"R' F2 L D2 R2 U' R D' R D' R U L'","badges":[[0,"CW"],[6,"CW"],[8,"CW"]]},{"n":"Case 5: Three corners, counterclockwise","tag":"Three twisted corners, all turning counterclockwise.","alg":"L U' R' D R' D R' U R2 D2 L' F2 R","badges":[[0,"CCW"],[6,"CCW"],[8,"CCW"]]},{"n":"Case 6: Four corners, front vs back","tag":"All four twisted: front pair one way, back pair the other.","alg":"L2 F2 R' D' L2 U F2 R2 U' R B2 R F2 U' R","badges":[[0,"CCW"],[2,"CCW"],[6,"CW"],[8,"CW"]]},{"n":"Case 7: Four corners, front and back bars","tag":"All four twisted: a front pair and a back pair, opposite ways.","alg":"R U D' F2 L2 D' L U2 B2 L2 D L' F2 D R2 U2","badges":[[0,"CCW"],[2,"CW"],[6,"CW"],[8,"CCW"]]}];
+function tfList(){return TF_DEF.map(function(t){var c={};for(var k in t)c[k]=t[k];c.sh=TF_G;c.note='';return c})}
+var NOTES={TW:"Corner twist method: one short algorithm, R' D' R D. Hold the cube with an unfinished corner at the front-right on top (the green outline). Repeat the algorithm until that corner's yellow faces up. The cube looks scrambled in between, which is normal. Then turn only the top layer (U) to bring the next corner to the front-right. Do not turn the whole cube. Tap a card to watch it on the 3D cube.",TWO:'The shortcut: only 10 algorithms. First make the yellow cross (step 1), then turn the corners (step 2). Match the picture, then tap the card to see it on the 3D cube.',OLL:'All 57 cases. Yellow is a sticker facing up, grey is not. Match your top layer (front at the bottom), read the moves, and tap the card to see it on the 3D cube.',PLL:'The top is already yellow. Match the colored side stickers (front at the bottom). Arrows go from where a piece is to where it needs to go.',TF:"Use this only when: the bottom two layers are solved, every top edge is solved (yellow on top, side color matching its center), and every top corner already sits in its correct slot but is twisted (yellow not facing up). Hold yellow on top and turn the WHOLE cube (never just the top layer) until it matches one of the pictures below \u2014 a strip on a side means that corner is twisted, and CW or CCW shows which way. Then do that one algorithm exactly as written; the cube ends fully solved. The cube looks scrambled partway through the moves, which is normal."};
 
 var stage=document.getElementById('stage');
 var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
@@ -127,8 +142,23 @@ camera.position.set(4.6,4.0,6.0);camera.lookAt(0,0,0);
 var cube=new THREE.Group();scene.add(cube);
 cube.quaternion.setFromEuler(new THREE.Euler(0,0,0));
 var stickers=[],cubies=[];
-var bodyGeo=new THREE.BoxGeometry(0.97,0.97,0.97),bodyMat=new THREE.MeshBasicMaterial({color:0x14151B}),stGeo=new THREE.PlaneGeometry(0.84,0.84);
+var bodyGeo=new THREE.BoxGeometry(0.97,0.97,0.97),bodyMat=new THREE.MeshBasicMaterial({color:0x0A0A0D}),stGeo=new THREE.PlaneGeometry(0.86,0.86);
 var NORMALS=[[0,1,0,'Y'],[0,-1,0,'W'],[0,0,1,'G'],[0,0,-1,'B'],[1,0,0,'O'],[-1,0,0,'R']];
+function stickerTexture(){
+ var cv=document.createElement('canvas');cv.width=cv.height=256;var g=cv.getContext('2d'),r=40,S=256;
+ g.clearRect(0,0,S,S);g.beginPath();
+ g.moveTo(r,0);g.lineTo(S-r,0);g.quadraticCurveTo(S,0,S,r);g.lineTo(S,S-r);g.quadraticCurveTo(S,S,S-r,S);
+ g.lineTo(r,S);g.quadraticCurveTo(0,S,0,S-r);g.lineTo(0,r);g.quadraticCurveTo(0,0,r,0);g.closePath();
+ var grad=g.createLinearGradient(0,0,S,S);
+ grad.addColorStop(0,'rgba(255,255,255,1)');grad.addColorStop(0.45,'rgba(255,255,255,0.95)');
+ grad.addColorStop(0.75,'rgba(255,255,255,0.86)');grad.addColorStop(1,'rgba(255,255,255,0.74)');
+ g.fillStyle=grad;g.fill();
+ var sheen=g.createRadialGradient(S*0.32,S*0.28,S*0.02,S*0.32,S*0.28,S*0.62);
+ sheen.addColorStop(0,'rgba(255,255,255,0.55)');sheen.addColorStop(1,'rgba(255,255,255,0)');
+ g.globalCompositeOperation='lighter';g.fillStyle=sheen;g.fill();
+ var tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;tex.magFilter=THREE.LinearFilter;tex.needsUpdate=true;return tex;
+}
+var STICKER_TEX=stickerTexture();
 
 function build(){
  while(cube.children.length)cube.remove(cube.children[0]);
@@ -138,9 +168,9 @@ function build(){
   var p=[x,y,z];
   NORMALS.forEach(function(n){
    var ax=n[0]?0:n[1]?1:2;var s=n[ax]; if(p[ax]!==s)return;
-   var m=new THREE.Mesh(stGeo,new THREE.MeshBasicMaterial({color:COLORS[n[3]]}));
+   var m=new THREE.Mesh(stGeo,new THREE.MeshBasicMaterial({map:STICKER_TEX,color:COLORS[n[3]],transparent:true}));
    var v=new THREE.Vector3(n[0],n[1],n[2]);
-   m.position.copy(v).multiplyScalar(0.487);
+   m.position.copy(v).multiplyScalar(0.489);
    m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),v);
    g.add(m);stickers.push(m);g.userData.st=m;
   });
@@ -220,19 +250,23 @@ function loadCase(name,alg,note){
  frameFix();
  cur={alg:alg.split(' '),idx:0,name:name,note:note||''};drawAlg();
 }
-var curBtn=null,mode='TWO';
+var curBtn=null,mode='TWO',view='cards';
+function pick(b,label,c){if(curBtn)curBtn.classList.remove('on');b.classList.add('on');curBtn=b;loadCase(label,c.play||c.alg,c.note);var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;stage.scrollIntoView({behavior:rm?'auto':'smooth',block:'nearest'})}
 var YEL='#FFD500',GREY='#3A3F4A',SCOL={R:'#D93A3A',O:'#F28C28',B:'#2C6FD1',G:'#2EA84F'};
 function diagram(o){
  var S=110,pad=3,t=8,g=2,off=pad+t+g,c=(S-2*off-2*g)/3,f=function(v){return o.pll?SCOL[v]:(v==='1'?YEL:GREY)};
  var P=function(i){return off+i*(c+g)},s='<svg viewBox="0 0 110 110" role="img" aria-label="'+o.label+'"><rect width="110" height="110" rx="10" fill="#14151B"/>';
- for(var r=0;r<3;r++)for(var k=0;k<3;k++){var col=o.pll?YEL:(o.top[r*3+k]==='1'?YEL:GREY);s+='<rect x="'+P(k).toFixed(1)+'" y="'+P(r).toFixed(1)+'" width="'+c.toFixed(1)+'" height="'+c.toFixed(1)+'" rx="3" fill="'+col+'"/>'}
- for(k=0;k<3;k++){
+ var badgeMap={};(o.badges||[]).forEach(function(bd){badgeMap[bd[0]]=bd[1]});
+ for(var r=0;r<3;r++)for(var k=0;k<3;k++){var idx0=r*3+k,col=o.badges?(idx0 in badgeMap?GREY:YEL):o.pll?YEL:(o.top[idx0]==='1'?YEL:GREY);s+='<rect x="'+P(k).toFixed(1)+'" y="'+P(r).toFixed(1)+'" width="'+c.toFixed(1)+'" height="'+c.toFixed(1)+'" rx="3" fill="'+col+'"/>'}
+ if(o.side)for(k=0;k<3;k++){
   s+='<rect x="'+P(k).toFixed(1)+'" y="'+pad+'" width="'+c.toFixed(1)+'" height="'+t+'" rx="2" fill="'+f(o.side[k])+'"/>';
   s+='<rect x="'+P(k).toFixed(1)+'" y="'+(S-pad-t)+'" width="'+c.toFixed(1)+'" height="'+t+'" rx="2" fill="'+f(o.side[3+k])+'"/>';
   s+='<rect x="'+pad+'" y="'+P(k).toFixed(1)+'" width="'+t+'" height="'+c.toFixed(1)+'" rx="2" fill="'+f(o.side[6+k])+'"/>';
   s+='<rect x="'+(S-pad-t)+'" y="'+P(k).toFixed(1)+'" width="'+t+'" height="'+c.toFixed(1)+'" rx="2" fill="'+f(o.side[9+k])+'"/>';
  }
+ if(o.ring){[[P(2),P(2),c,c],[P(2),S-pad-t,c,t],[S-pad-t,P(2),t,c]].forEach(function(r){s+='<rect x="'+r[0].toFixed(1)+'" y="'+r[1].toFixed(1)+'" width="'+r[2].toFixed(1)+'" height="'+r[3].toFixed(1)+'" rx="3" fill="none" stroke="#1D9E75" stroke-width="2.4"/>'})}
  var C=function(i){return[P(i%3)+c/2,P(Math.floor(i/3))+c/2]};
+ (o.badges||[]).forEach(function(bd){var p=C(bd[0]);s+='<text x="'+p[0].toFixed(1)+'" y="'+(p[1]+4.2).toFixed(1)+'" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle" font-family="system-ui,sans-serif">'+bd[1]+'</text>';});
  function head(p,a,col,w){var h='';[a+2.6,a-2.6].forEach(function(b){h+='<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+(p[0]+6*Math.cos(b)).toFixed(1)+'" y2="'+(p[1]+6*Math.sin(b)).toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"/>'});return h}
  [['#fff',4.6],['#14151B',2.2]].forEach(function(st){
   (o.cyc||[]).forEach(function(cy){
@@ -250,29 +284,38 @@ function diagram(o){
 }
 function fillCases(){
  var box=document.getElementById('cases'),nav=document.getElementById('shapeNav');box.innerHTML='';nav.innerHTML='';
- var list=mode==='PLL'?PLL:mode==='TWO'?twoList():OLL,groups=[],idx={};
+ var list=mode==='PLL'?PLL:mode==='TWO'?twoList():mode==='TW'?twList():mode==='TF'?tfList():OLL,groups=[],idx={};
  list.forEach(function(c){var k=mode==='PLL'?c.g:c.sh;if(!(k in idx)){idx[k]=groups.length;groups.push({k:k,items:[]})}groups[idx[k]].items.push(c)});
- document.getElementById('galnote').textContent=NOTES[mode];
+ document.getElementById('galnote').textContent=view==='buttons'?'Tap a button to see the pattern on the 3D cube. The moves appear under the cube (hover a button to preview them).':NOTES[mode];
  groups.forEach(function(gp,gi){
   var id='grp'+gi,a=document.createElement('a');a.href='#'+id;a.textContent=gp.k;a.onclick=function(e){e.preventDefault();document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'})};nav.appendChild(a);
   var h=document.createElement('h3');h.id=id;h.textContent=gp.k;box.appendChild(h);
-  var grid=document.createElement('div');grid.className='grid';
+  var grid=document.createElement('div');grid.className=view==='buttons'?'row btns':'grid';
   gp.items.forEach(function(c){
-   var label=(mode==='PLL'?'PLL ':'OLL ')+c.n,b=document.createElement('button');b.className='gc';
-   var d=mode==='PLL'?diagram({pll:1,side:c.s.split(''),cyc:c.cyc,label:label}):diagram({top:c.b.slice(0,9),side:c.b.slice(9).split(''),label:label});
+   var label=(mode==='TW'||mode==='TF')?c.n:(mode==='PLL'?'PLL ':'OLL ')+c.n;
+   if(view==='buttons'){var bb=document.createElement('button');bb.textContent=(mode==='TW'||mode==='TF')?c.n:mode==='TWO'?c.tag.split(':')[0]:mode==='PLL'?c.n:'OLL '+c.n;bb.title=c.alg;bb.setAttribute('aria-label','Show '+label+' on the 3D cube');bb.onclick=function(){pick(bb,label,c)};grid.appendChild(bb);return}
+   var b=document.createElement('button');b.className='gc';
+   var d=mode==='PLL'?diagram({pll:1,side:c.s.split(''),cyc:c.cyc,label:label}):mode==='TF'?diagram({badges:c.badges,label:label}):diagram({top:c.b.slice(0,9),side:c.b.slice(9).split(''),ring:c.ring,label:label});
    b.setAttribute('aria-label','Show '+label+' on the 3D cube');
    b.innerHTML=d+'<div class="nm">'+label+'</div><div class="sm">'+(c.tag||(mode==='PLL'?c.d:'Edges '+c.e+'/4 | Corners '+c.c+'/4 oriented'))+'</div><div class="al">'+c.alg+'</div>'+(c.note?'<div class="nt">'+c.note+'</div>':'');
-   b.onclick=function(){if(curBtn)curBtn.classList.remove('on');b.classList.add('on');curBtn=b;loadCase(label,c.alg,c.note);
-    var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;stage.scrollIntoView({behavior:rm?'auto':'smooth',block:'nearest'})};
+   b.onclick=function(){pick(b,label,c)};
    grid.appendChild(b);
   });
   box.appendChild(grid);
  });
 }
+document.getElementById('vCards').onclick=function(){view='cards';setTabs()};
+document.getElementById('vBtn').onclick=function(){view='buttons';setTabs()};
 document.getElementById('tPLL').onclick=function(){mode='PLL';setTabs()};
 document.getElementById('tTWO').onclick=function(){mode='TWO';setTabs()};
+document.getElementById('tTW').onclick=function(){mode='TW';setTabs()};
+document.getElementById('tTF').onclick=function(){mode='TF';setTabs()};
 document.getElementById('tOLL').onclick=function(){mode='OLL';setTabs()};
 function setTabs(){
+ document.getElementById('vCards').setAttribute('aria-pressed',view==='cards');
+ document.getElementById('vBtn').setAttribute('aria-pressed',view==='buttons');
+ document.getElementById('tTF').setAttribute('aria-pressed',mode==='TF');
+ document.getElementById('tTW').setAttribute('aria-pressed',mode==='TW');
  document.getElementById('tTWO').setAttribute('aria-pressed',mode==='TWO');
  document.getElementById('tPLL').setAttribute('aria-pressed',mode==='PLL');
  document.getElementById('tOLL').setAttribute('aria-pressed',mode==='OLL');curBtn=null;fillCases();
