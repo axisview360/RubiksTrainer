@@ -102,6 +102,8 @@ button[aria-pressed="true"],button.on{background:var(--accent);color:#fff;border
   <section class="card gal" id="gallery">
    <h2>Find your pattern</h2>
    <div class="row tabs" role="tablist" style="margin-bottom:8px">
+    <button id="tRXG" aria-pressed="false">Roux Guide</button>
+    <button id="tCMLL" aria-pressed="false">Roux CMLL</button>
     <button id="tF2L" aria-pressed="false">F2L Basics</button>
     <button id="tTWO" aria-pressed="true">2-look OLL (shortcut)</button>
     <button id="tTW" aria-pressed="false">Corner twist method</button>
@@ -193,7 +195,7 @@ function snap(c){
 }
 var DEF={R:['x',function(c){return c.position.x>0.5},-1],L:['x',function(c){return c.position.x<-0.5},1],M:['x',function(c){return Math.abs(c.position.x)<0.5},1],
 r:['x',function(c){return c.position.x>-0.5},-1],U:['y',function(c){return c.position.y>0.5},-1],D:['y',function(c){return c.position.y<-0.5},1],
-F:['z',function(c){return c.position.z>0.5},-1],B:['z',function(c){return c.position.z<-0.5},1],f:['z',function(c){return c.position.z>-0.5},-1],d:['y',function(c){return c.position.y<0.5},1],x:['x',function(){return true},-1],y:['y',function(){return true},-1]};
+F:['z',function(c){return c.position.z>0.5},-1],B:['z',function(c){return c.position.z<-0.5},1],f:['z',function(c){return c.position.z>-0.5},-1],d:['y',function(c){return c.position.y<0.5},1],E:['y',function(c){return Math.abs(c.position.y)<0.5},1],x:['x',function(){return true},-1],y:['y',function(){return true},-1]};
 var AX={x:new THREE.Vector3(1,0,0),y:new THREE.Vector3(0,1,0),z:new THREE.Vector3(0,0,1)};
 function info(tok){
  var d=DEF[tok[0]],k=tok.indexOf('2')>=0?2:1,dir=d[2]*(tok.slice(-1)==="'"&&k===1?-1:1);
@@ -416,12 +418,53 @@ function renderF2L(){
  box.appendChild(note);
 }
 
+var CMLL=[{"n":"Skip","sh":"Corners already oriented","top":"111111111","alg":"(already solved)","tag":"Recognition: Two adjacent solved sides."},{"n":"J-Perm (adjacent swap)","sh":"Corners already oriented","top":"111111111","alg":"R U R' F' R U R' U' R' F R2 U' R'","tag":"Recognition: One solved side; next to it two stickers with adjacent colors."},{"n":"Y-Perm (diagonal swap)","sh":"Corners already oriented","top":"111111111","alg":"F R U' R' U' R U R' F' R U R' U' R' F R F'","tag":"Recognition: Two adjacent sides where each has opposite-colored stickers."},{"n":"Columns","sh":"H","top":"010111010","alg":"R U2 R' U' R U R' U' R U' R'","tag":"Recognition: S1 = S4, S2 = S3"},{"n":"Single Column","sh":"H","top":"010111010","alg":"U F R U' R' U R U2 R' U' R U R' U' F'","tag":"Recognition: S1 opp S4, S2 = S3"},{"n":"Single Row","sh":"H","top":"010111010","alg":"r U' r2 D' r U' r' D r2 U r'","tag":"Recognition: S1 = S2, S3 opp S4"},{"n":"Rows","sh":"H","top":"010111010","alg":"F R U R' U' R U R' U' R U R' U' F'","tag":"Recognition: S1 = S2, S3 = S4"},{"n":"Back Row","sh":"Pi","top":"010111010","alg":"U F R U R' U' R U R' U' F'","tag":"Recognition: S1 = S2, S3 opp S4"},{"n":"Rows","sh":"Pi","top":"010111010","alg":"r U' r2 D' r U r' D r2 U r'","tag":"Recognition: S1 = S2, S3 = S4"},{"n":"Up Slash (/)","sh":"Pi","top":"010111010","alg":"U2 F R' F' R U2 R U' R' U R U2 R'","tag":"Recognition: S1 opp S3, S2 = S4"},{"n":"X Checkerboard","sh":"Pi","top":"010111010","alg":"R' F R U F U' R U R' U' F'","tag":"Recognition: S1 = S3, S2 = S4"},{"n":"Down Slash (\\)","sh":"Pi","top":"010111010","alg":"U R U2 R' U' R U R' U2 R' F R F'","tag":"Recognition: S1 = S3, S2 opp S4"},{"n":"Front Row","sh":"Pi","top":"010111010","alg":"R' U' R' F R F' R U' R' U2 R","tag":"Recognition: S1 opp S2, S3 = S4"},{"n":"Adjacent Row","sh":"L / Bowtie","top":"011111110","alg":"U2 R U2 R' U' R U R' U' R U R' U' R U' R'","tag":"Recognition: S1 = S2 adj S4"},{"n":"Opposite Row","sh":"L / Bowtie","top":"011111110","alg":"F R U' R' U' R U R' F'","tag":"Recognition: S1 = S2 opp S4"},{"n":"Opposite Slash (/)","sh":"L / Bowtie","top":"011111110","alg":"U' R' U2 R' D' R U2 R' D R2","tag":"Recognition: S4 = S2 opp S3"},{"n":"Adjacent Slash (/)","sh":"L / Bowtie","top":"011111110","alg":"R U2 R D R' U2 R D' R2","tag":"Recognition: S2 = S3 adj S4"},{"n":"Opposite Column","sh":"L / Bowtie","top":"011111110","alg":"F R' F' R U R U' R'","tag":"Recognition: S2 = S3 opp S4"},{"n":"Adjacent Column","sh":"L / Bowtie","top":"011111110","alg":"R U2 R2 F R F' R U2 R'","tag":"Recognition: S2 = S3 adj S4"},{"n":"Columns","sh":"U / Headlights (family 1)","top":"111111010","alg":"R2 F U' F U F2 R2 U' R' F R","tag":"Recognition: S2 = S3 opp S1"},{"n":"Right Column","sh":"U / Headlights (family 1)","top":"111111010","alg":"R2 D' R U2 R' D R U2 R","tag":"Recognition: S2 = S3 adj S1"},{"n":"Left Column","sh":"U / Headlights (family 1)","top":"111111010","alg":"U2 R2 D R' U2 R D' R' U2 R'","tag":"Recognition: S1 = S4 adj S2"},{"n":"Front Row","sh":"U / Headlights (family 1)","top":"111111010","alg":"U2 r U' r' U r' D' r U' r' D r","tag":"Recognition: S1 opp S2 adj S3"},{"n":"Back Row","sh":"U / Headlights (family 1)","top":"111111010","alg":"U' F R2 D R' U R D' R2 U' F'","tag":"Recognition: S1 = S2 adj S3"},{"n":"Rows","sh":"U / Headlights (family 1)","top":"111111010","alg":"U' F R U R' U' F'","tag":"Recognition: S1 = S2 opp S3"},{"n":"Back Row","sh":"T / Chameleon (family 2)","top":"110111110","alg":"F R' F R2 U' R' U' R U R' F2","tag":"Recognition: S1 = S2 adj S3"},{"n":"Up Slash (/)","sh":"T / Chameleon (family 2)","top":"110111110","alg":"U' R U R' U' R' F R F'","tag":"Recognition: S2 = S4 adj S1"},{"n":"Down Slash (\\)","sh":"T / Chameleon (family 2)","top":"110111110","alg":"U L' U' L U L F' L' F","tag":"Recognition: S1 = S3 adj S2"},{"n":"Rows","sh":"T / Chameleon (family 2)","top":"110111110","alg":"r' D' r U' r D r U' r U r'","tag":"Recognition: S1 = S2 opp S3"},{"n":"X Checkerboard","sh":"T / Chameleon (family 2)","top":"110111110","alg":"r' U r U2 R2 F R F' R","tag":"Recognition: S1 = S3 opp S2"},{"n":"Front Row","sh":"T / Chameleon (family 2)","top":"110111110","alg":"U2 r2 D' r U r' D r2 U' r' U' r","tag":"Recognition: S1 opp S2 adj S3"},{"n":"Left Column","sh":"Sune","top":"011111010","alg":"R U R' U R U2 R'","tag":"Recognition: S1 adj S2 opp S3"},{"n":"X Checkerboard","sh":"Sune","top":"011111010","alg":"R U' L' U R' U' L","tag":"Recognition: S1 = S3 opp S2"},{"n":"Columns","sh":"Sune","top":"011111010","alg":"F R' F' R U2 R U2 R'","tag":"Recognition: S1 opp S2 = S3"},{"n":"Down Slash (\\)","sh":"Sune","top":"011111010","alg":"R U R' U' R F R F' R U R' U R U2 R'","tag":"Recognition: S1 = S3 adj S2"},{"n":"Up Slash (/)","sh":"Sune","top":"011111010","alg":"L' U2 L U2 L F' L' F","tag":"Recognition: S1 opp S3 adj S2"},{"n":"Right Column","sh":"Sune","top":"011111010","alg":"U2 R U R' U R' F R F' R U2 R'","tag":"Recognition: S1 adj S2 = S3"},{"n":"Right Column","sh":"Antisune","top":"011111010","alg":"U2 R' U' R U' R' U2 R","tag":"Recognition: S2 = S3 adj S1"},{"n":"Columns","sh":"Antisune","top":"011111010","alg":"F' L F L' U2 L' U2 L","tag":"Recognition: S1 opp S2 = S3"},{"n":"X Checkerboard","sh":"Antisune","top":"011111010","alg":"L' U R U' L U R'","tag":"Recognition: S1 = S3 opp S2"},{"n":"Up Slash (/)","sh":"Antisune","top":"011111010","alg":"R2 D R' U R D' R' U R' U' R U' R'","tag":"Recognition: S1 opp S3 adj S2"},{"n":"Down Slash (\\)","sh":"Antisune","top":"011111010","alg":"R U2 R' U2 R' F R F'","tag":"Recognition: S1 = S3 adj S2"},{"n":"Left Column","sh":"Antisune","top":"011111010","alg":"U R' U' R U' R' U R' F R F' U R","tag":"Recognition: S1 adj S2 opp S3"}];
+
+function rxCard(title, lines){
+ var d=document.createElement('div');d.className='card';d.style.marginBottom='12px';
+ var h='<h3 style="margin-top:0">'+title+'</h3>';
+ lines.forEach(function(l){h+='<p class="note" style="margin:6px 0">'+l+'</p>'});
+ d.innerHTML=h; return d;
+}
+function renderRouxGuide(){
+ var box=document.getElementById('cases');box.innerHTML='';
+ box.appendChild(rxCard("The Roux Method",[
+  "A block-building speedsolving method: fewer algorithms than CFOP, almost no cube rotations, heavy use of the M slice.",
+  "<b>1. First block</b> \u2014 build a 1\u00d72\u00d73 block of pieces on one side of the cube (commonly the left), solving it intuitively like a 2\u00d72\u00d73 corner.",
+  "<b>2. Second block</b> \u2014 build a matching 1\u00d72\u00d73 block on the opposite side, without disturbing the first block.",
+  "<b>3. CMLL</b> (Corners of the Last Layer) \u2014 one algorithm that orients AND permutes the four top corners at once. 42 cases to learn.",
+  "<b>4. LSE</b> (Last Six Edges) \u2014 solve the four top edges plus the two remaining middle edges, using only M and U turns."
+ ]));
+ box.appendChild(rxCard("First block",[
+  "Pick a color to start with (many Rouxers use the same color every time, commonly the left face being white or yellow). Hold that color on the left.",
+  "Your goal is a solid 1\u00d72\u00d73 block: the whole left layer (2 corners and 1 edge on top, 2 corners and 1 edge on bottom) plus the matching middle-layer edge between them \u2014 six pieces in total.",
+  "Solve it like a 2\u00d72\u00d72 block first (pair up the two left corners and their neighboring edges), then insert the middle-layer edge that belongs between them.",
+  "There's no fixed algorithm \u2014 you build it with whatever short, efficient moves get those 6 pieces together. This is the single biggest skill to practice in Roux."
+ ]));
+ box.appendChild(rxCard("Second block",[
+  "Without rotating the cube, work on the opposite side so you can build a matching 1\u00d72\u00d73 block on the right \u2014 Roux is designed to need almost no whole-cube rotations.",
+  "Build it the same way as the first block: 2\u00d72\u00d72 corner pairing, then slot in the missing middle edge.",
+  "<b>The key rule: do not disturb the first block</b> while building the second. This is what makes second block noticeably harder, and is the main place beginners get stuck.",
+  "Once both blocks are done, the bottom two layers are solved except for the U-layer corners and the M-slice edges \u2014 exactly the state CMLL and LSE are designed for."
+ ]));
+ box.appendChild(rxCard("Step 4: LSE \u2014 Last Six Edges",[
+  "After CMLL, the only unsolved pieces left are the last six edges \u2014 the four U-layer edges plus the DF and DB edges on the M slice. M and U turns alone are powerful enough to solve all six, and restricted enough that they can never disturb your two finished blocks.",
+  "<b>LSEa \u2014 orient all six edges.</b> Align the M slice so the U-face center is either the top or bottom color of your solve. The building-block move is M' U M' \u2014 repeating variations of it walks you through the 12 possible good/bad-edge patterns until all six are oriented.",
+  "Reference algorithms: D-Line: <code>M' U M' U' M U M</code> &nbsp; 1+1: <code>M' U' M' U2 M U M'</code> &nbsp; V: <code>M' U M' U2 M' U M'</code> &nbsp; V+D-Line: <code>M2 U' M' U M'</code> &nbsp; U-Line: <code>M' U M' U' M U M'</code> &nbsp; (U+D)-Line: <code>M' U2 M' U2 M U M</code> &nbsp; F/B Arrow: <code>M' U M'</code> &nbsp; Cross: <code>M' U2 M' U2 M' U M'</code> &nbsp; 6 Flip: <code>M' U M' U M U M U2 M' U M'</code>",
+  "<b>LSEb \u2014 solve the UL and UR edges.</b> Alternate single U turns with M2, and single M turns with U2, so orientation is never disturbed. Put one of the two remaining top-layer edges into the D layer with an M2, line the other one up diagonally opposite it, then M' U2 M brings both into a line in the D layer. Turn the U layer so the corner colors above the DF edge match its front sticker, then a final M2 solves both edges together.",
+  "<b>LSEc \u2014 solve the last two M-slice edges.</b> Only four cases remain: Clockwise 3-cycle <code>U2 M' U2 M</code>, Counterclockwise 3-cycle <code>M' U2 M U2</code>, H pattern <code>M2 U2 M2 U2</code>, Dots pattern <code>M' E2 M E2</code>. Run the matching one and the cube is solved."
+ ]));
+ var note=document.createElement('p');note.className='note';
+ note.textContent='LSE breakdown adapted from Trevor Scheopner\u2019s Roux guide. See the CMLL tab for the 42-case corner algorithm reference.';
+ box.appendChild(note);
+}
+
 function fillCases(){
  var box=document.getElementById('cases'),nav=document.getElementById('shapeNav'),vr=document.getElementById('viewRow');
- if(mode==='IDX'||mode==='PR'||mode==='F2L'){nav.innerHTML='';vr.style.display='none';document.getElementById('galnote').textContent=mode==='IDX'?'Match your cube to find its case, without scrolling through every pattern.':mode==='PR'?'Practice with a random scramble and a stopwatch.':'The step before OLL: pairing a corner with its edge and placing both together.';({IDX:renderIdentify,PR:renderPractice,F2L:renderF2L})[mode]();return}
+ if(mode==='IDX'||mode==='PR'||mode==='F2L'||mode==='RXG'){nav.innerHTML='';vr.style.display='none';document.getElementById('galnote').textContent=mode==='IDX'?'Match your cube to find its case, without scrolling through every pattern.':mode==='PR'?'Practice with a random scramble and a stopwatch.':mode==='F2L'?'The step before OLL: pairing a corner with its edge and placing both together.':'An alternative to CFOP: two blocks, one corner algorithm (CMLL), then the last six edges (LSE).';({IDX:renderIdentify,PR:renderPractice,F2L:renderF2L,RXG:renderRouxGuide})[mode]();return}
  vr.style.display='';
  box.innerHTML='';nav.innerHTML='';
- var list=mode==='PLL'?PLL:mode==='TWO'?twoList():mode==='TW'?twList():mode==='TF'?tfList():OLL,groups=[],idx={};
+ var list=mode==='PLL'?PLL:mode==='TWO'?twoList():mode==='TW'?twList():mode==='TF'?tfList():mode==='CMLL'?CMLL:OLL,groups=[],idx={};
  list.forEach(function(c){var k=mode==='PLL'?c.g:c.sh;if(!(k in idx)){idx[k]=groups.length;groups.push({k:k,items:[]})}groups[idx[k]].items.push(c)});
  document.getElementById('galnote').textContent=view==='buttons'?'Tap a button to see the pattern on the 3D cube. The moves appear under the cube (hover a button to preview them).':NOTES[mode];
  groups.forEach(function(gp,gi){
@@ -429,10 +472,10 @@ function fillCases(){
   var h=document.createElement('h3');h.id=id;h.textContent=gp.k;box.appendChild(h);
   var grid=document.createElement('div');grid.className=view==='buttons'?'row btns':'grid';
   gp.items.forEach(function(c){
-   var label=(mode==='TW'||mode==='TF')?c.n:(mode==='PLL'?'PLL ':'OLL ')+c.n;
-   if(view==='buttons'){var bb=document.createElement('button');bb.textContent=(mode==='TW'||mode==='TF')?c.n:mode==='TWO'?c.tag.split(':')[0]:mode==='PLL'?c.n:'OLL '+c.n;bb.title=c.alg;bb.setAttribute('aria-label','Show '+label+' on the 3D cube');bb.onclick=function(){pick(bb,label,c)};grid.appendChild(bb);return}
+   var label=(mode==='TW'||mode==='TF'||mode==='CMLL')?c.n:(mode==='PLL'?'PLL ':'OLL ')+c.n;
+   if(view==='buttons'){var bb=document.createElement('button');bb.textContent=(mode==='TW'||mode==='TF'||mode==='CMLL')?c.n:mode==='TWO'?c.tag.split(':')[0]:mode==='PLL'?c.n:'OLL '+c.n;bb.title=c.alg;bb.setAttribute('aria-label','Show '+label+' on the 3D cube');bb.onclick=function(){pick(bb,label,c)};grid.appendChild(bb);return}
    var b=document.createElement('button');b.className='gc';
-   var d=mode==='PLL'?diagram({pll:1,side:c.s.split(''),cyc:c.cyc,label:label}):mode==='TF'?diagram({badges:c.badges,label:label}):diagram({top:c.b.slice(0,9),side:c.b.slice(9).split(''),ring:c.ring,label:label});
+   var d=mode==='PLL'?diagram({pll:1,side:c.s.split(''),cyc:c.cyc,label:label}):mode==='TF'?diagram({badges:c.badges,label:label}):mode==='CMLL'?diagram({top:c.top,label:label}):diagram({top:c.b.slice(0,9),side:c.b.slice(9).split(''),ring:c.ring,label:label});
    b.setAttribute('aria-label','Show '+label+' on the 3D cube');
    b.innerHTML=d+'<div class="nm">'+label+'</div><div class="sm">'+(c.tag||(mode==='PLL'?c.d:'Edges '+c.e+'/4 | Corners '+c.c+'/4 oriented'))+'</div><div class="al">'+c.alg+'</div>'+(c.note?'<div class="nt">'+c.note+'</div>':'');
    b.onclick=function(){pick(b,label,c)};
@@ -448,6 +491,8 @@ document.getElementById('tTWO').onclick=function(){mode='TWO';setTabs()};
 document.getElementById('tTW').onclick=function(){mode='TW';setTabs()};
 document.getElementById('tTF').onclick=function(){mode='TF';setTabs()};
 document.getElementById('tOLL').onclick=function(){mode='OLL';setTabs()};
+document.getElementById('tRXG').onclick=function(){mode='RXG';setTabs()};
+document.getElementById('tCMLL').onclick=function(){mode='CMLL';setTabs()};
 document.getElementById('tF2L').onclick=function(){mode='F2L';setTabs()};
 document.getElementById('tIDX').onclick=function(){mode='IDX';setTabs()};
 document.getElementById('tPR').onclick=function(){mode='PR';setTabs()};
@@ -459,6 +504,8 @@ function setTabs(){
  document.getElementById('tTWO').setAttribute('aria-pressed',mode==='TWO');
  document.getElementById('tPLL').setAttribute('aria-pressed',mode==='PLL');
  document.getElementById('tOLL').setAttribute('aria-pressed',mode==='OLL');
+ document.getElementById('tRXG').setAttribute('aria-pressed',mode==='RXG');
+ document.getElementById('tCMLL').setAttribute('aria-pressed',mode==='CMLL');
  document.getElementById('tF2L').setAttribute('aria-pressed',mode==='F2L');
  document.getElementById('tIDX').setAttribute('aria-pressed',mode==='IDX');
  document.getElementById('tPR').setAttribute('aria-pressed',mode==='PR');

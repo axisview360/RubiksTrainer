@@ -1,5 +1,5 @@
 // Bump CACHE_VERSION whenever you change any file, so installed apps pick up the update.
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v8';
 const CACHE = 'cube-trainer-' + CACHE_VERSION;
 const FILES = [
   './',
